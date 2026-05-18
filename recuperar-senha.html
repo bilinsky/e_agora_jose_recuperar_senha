@@ -1,80 +1,101 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recuperar senha — App E Agora, José?</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      color: #222;
-      margin: 0;
-      padding: 24px;
-    }
-    .card {
-      max-width: 640px;
+      font-family: system-ui, sans-serif;
+      padding: 1.25rem;
+      max-width: 28rem;
       margin: 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      line-height: 1.5;
+      line-height: 1.45;
+      color: #1a1a1a;
     }
-    h1 {
-      margin-top: 0;
-      font-size: 24px;
-      color: #7a1f5c;
-    }
-    h2 {
-      margin-top: 24px;
-      font-size: 18px;
-      color: #7a1f5c;
-    }
+    h1 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1rem; margin-top: 1.25rem; }
     .btn {
       display: inline-block;
-      margin: 16px 0;
-      padding: 12px 18px;
-      background: #e91e63;
-      color: #fff !important;
+      margin-top: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: #75547a;
+      color: #d9d5db;
       text-decoration: none;
-      border-radius: 8px;
-      font-weight: bold;
+      border-radius: 10px;
+      font-weight: 600;
     }
-    .code {
-      background: #f1f1f1;
+    .btn:disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    #status { margin-top: 0.75rem; font-size: 0.95rem; }
+    code {
+      display: block;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: #e2e2e2;
       border-radius: 6px;
-      padding: 10px;
-      font-family: monospace;
+      font-size: 0.8rem;
       word-break: break-all;
     }
-    p { margin: 10px 0; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Recuperar senha — App E Agora, José?</h1>
+  <h1>Recuperar senha — App E Agora, José?</h1>
+  <p>Você solicitou a recuperação da sua senha. Para concluir, abra o app no celular onde ele está instalado.</p>
 
-    <p>Você solicitou a recuperação da sua senha no aplicativo E Agora, José?.</p>
-    <p>Para concluir com segurança, abra no celular com o app instalado.</p>
+  <a id="btn-abrir-app" class="btn" href="#">Abrir no app</a>
+  <p id="status" hidden></p>
 
-    <a class="btn" href="groupcontrol://auth/recovery">Abrir no app</a>
+  <h2>Se não abrir automaticamente</h2>
+  <p>Toque em <strong>Abrir no app</strong> no celular com o Group Control instalado.</p>
+  <p>O link precisa incluir os dados de acesso enviados pelo e-mail (não use só <code>groupcontrol://auth/recovery</code> sem os parâmetros).</p>
 
-    <h2>Se não abrir automaticamente</h2>
-    <p>Abra esta página no celular onde o app E Agora, José? está instalado.</p>
-    <p>Toque novamente em <strong>Abrir no app</strong>.</p>
-    <p>Se necessário, copie e cole este endereço no navegador do celular:</p>
-    <div class="code">groupcontrol://auth/recovery</div>
+  <h2>Link expirado ou erro</h2>
+  <p>Volte ao app, toque em <strong>Esqueci minha senha</strong> e solicite um novo e-mail.</p>
 
-    <h2>Link expirado ou erro</h2>
-    <p>Se o link de recuperação expirou, volte ao aplicativo e solicite uma nova recuperação de senha.</p>
+  <script>
+    (function () {
+      var esquemaBase = 'groupcontrol://auth/recovery';
+      var sufixoSessao = (window.location.search || '') + (window.location.hash || '');
+      var deepLink = esquemaBase + sufixoSessao;
+      var btn = document.getElementById('btn-abrir-app');
+      var status = document.getElementById('status');
 
-    <h2>Segurança</h2>
-    <p>Nunca compartilhe este link com outras pessoas.</p>
-    <p>A equipe do programa não solicita sua senha por mensagem, telefone ou e-mail.</p>
+      function temCredenciaisNaUrl() {
+        var texto = sufixoSessao.toLowerCase();
+        return (
+          texto.indexOf('access_token=') >= 0 ||
+          texto.indexOf('refresh_token=') >= 0 ||
+          texto.indexOf('code=') >= 0
+        );
+      }
 
-    <h2>Precisa de ajuda?</h2>
-    <p>Entre em contato com o suporte do programa.</p>
-  </div>
+      function abrirApp() {
+        if (!temCredenciaisNaUrl()) {
+          status.hidden = false;
+          status.textContent =
+            'Este link ainda não traz os dados do e-mail. Abra primeiro o link completo que chegou na sua caixa de entrada.';
+          return;
+        }
+        window.location.href = deepLink;
+      }
+
+      btn.href = deepLink;
+      btn.addEventListener('click', function (evento) {
+        evento.preventDefault();
+        abrirApp();
+      });
+
+      if (temCredenciaisNaUrl()) {
+        abrirApp();
+      } else {
+        status.hidden = false;
+        status.textContent =
+          'Aguardando os dados do e-mail. Se você abriu só esta página, volte ao e-mail e toque no link de recuperação.';
+      }
+    })();
+  </script>
 </body>
 </html>
